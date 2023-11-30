@@ -25,4 +25,5 @@ urlpatterns = [
 
     # all
     path('islogedin', get_is_logedin, name='get_is_logedin'),
+    
 ]

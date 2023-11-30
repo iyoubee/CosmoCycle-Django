@@ -22,6 +22,8 @@ urlpatterns = [
     # user
     path('user/data/get', user_get_data, name='user_get_data'),
     path('user/deposit/get', user_get_deposit, name='user_get_deposit'),
+    path('user/withdraw/get', user_get_withdraw, name='user_get_withdraw'),
+    path('user/withdraw/add', user_add_withdraw, name='user_add_withdraw'),
 
     # all
     path('islogedin', get_is_logedin, name='get_is_logedin'),

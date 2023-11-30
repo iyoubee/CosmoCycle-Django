@@ -168,6 +168,33 @@ def user_get_data(request):
     return JsonResponse({ "message": "Unauthorized" }, status=403)
 
 @csrf_exempt
+def user_get_withdraw(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        withdraw = Withdraw.objects.filter(user=user).order_by('-pk')
+        return JsonResponse(serializers.serialize("json", withdraw), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_add_withdraw(request):
+    user = request.user
+    if has_role(user, commonUser):
+        if request.method == 'POST':
+            jumlah = int(request.POST.get('jumlah'))
+            userData = UserData.objects.get(user=user)
+            if (jumlah > 0):
+                if (userData.balance >= jumlah):
+                    withdraw = Withdraw(jumlah=jumlah, user=user)
+                    withdraw.save()
+                    userData.balance -= jumlah
+                    userData.save()
+                    return JsonResponse({"message": "Penarikan Berhasil", 'status':200}, status=200) 
+                return JsonResponse({"message": "Saldo Kurang", 'status':300}, status=200) 
+            return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
+        return JsonResponse({"message": "Method not allowed", 'status':502}, status=502)
+    return JsonResponse({ "message": "Unauthorized" , 'status':403}, status=403)
+
+@csrf_exempt
 def get_is_logedin(request):
     user = request.user
     if (has_role(user, commonUser)):

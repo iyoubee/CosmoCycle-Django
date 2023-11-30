@@ -20,7 +20,6 @@ urlpatterns = [
     path('admin/deposit/add', admin_add_deposit, name='admin_add_deposit'),
 
     # user
-    path('user/token', user_get_token_by_id, name='user_get_token_by_id'),
     path('user/data/get', user_get_data, name='user_get_data'),
     path('user/deposit/get', user_get_deposit, name='user_get_deposit'),
 

@@ -100,6 +100,74 @@ def logout_user(request):
     return JsonResponse({"message": "Berhasil logout", 'status':200}, status=200)
 
 @csrf_exempt
+def admin_get_user_by_token(request):
+    user = request.user
+    if (has_role(user, superUser)):
+        token = request.POST.get('token')
+        userData = UserData.objects.get(token=token)
+        return JsonResponse({"id": userData.pk, "id": userData.pk, "username": userData.username}, status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def admin_get_deposit(request):
+    user = request.user
+    if (has_role(user, superUser)):
+        deposit = Deposit.objects.all().order_by('-pk')
+        return JsonResponse(serializers.serialize("json", deposit), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def admin_get_deposit_count(request):
+    user = request.user
+    if (has_role(user, superUser)):
+        count = Deposit.objects.all().count()
+        return JsonResponse({"count": count}, status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def admin_add_deposit(request):
+    user = request.user
+    if (has_role(user, superUser)):
+        if request.method == 'POST':
+            HARGA_PLASTIK = 10000
+            HARGA_ELEKTRONIK = 12000
+            user = UserData.objects.get(pk=request.id)
+            jenis = request.POST.get('jenis')
+            berat = int(request.POST.get('berat'))
+            if (berat > 0):
+                totalHarga = 0
+                if jenis == "plastik":
+                    totalHarga = berat * HARGA_PLASTIK
+                elif jenis == "elektronik":
+                    totalHarga = berat * HARGA_ELEKTRONIK
+                poin = totalHarga // 1000
+                deposit = Deposit(berat=berat, jenis=jenis, totalHarga=totalHarga, poin=poin, user=user, username=user.username)
+                deposit.save()
+                user.poin += poin
+                user.balance += totalHarga
+                user.save()
+                return JsonResponse({"message": "Deposit diajukan" ,"status":200}, status=200) 
+            return JsonResponse({ "message": "Input tidak valid", "status":400}, status=400)
+        return JsonResponse({"message": "Method not allowed", "status":502}, status=502)
+    return JsonResponse({ "message": "Unauthorized" , "status":403}, status=403)
+
+@csrf_exempt
+def user_get_deposit(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        deposit = Deposit.objects.filter(user=user).order_by('-pk')
+        return JsonResponse(serializers.serialize("json", deposit), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_get_data(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        userdata = UserData.objects.filter(user=user)
+        return JsonResponse(serializers.serialize("json", userdata), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
 def get_is_logedin(request):
     user = request.user
     if (has_role(user, commonUser)):

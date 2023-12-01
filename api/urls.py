@@ -24,6 +24,8 @@ urlpatterns = [
     path('user/deposit/get', user_get_deposit, name='user_get_deposit'),
     path('user/withdraw/get', user_get_withdraw, name='user_get_withdraw'),
     path('user/withdraw/add', user_add_withdraw, name='user_add_withdraw'),
+    path('user/prize/redeem/get', user_get_redeemed_prize, name='user_get_redeemed_prize'),
+    path('user/prize/redeem/use', user_use_prize, name='user_use_prize'),
 
     # all
     path('islogedin', get_is_logedin, name='get_is_logedin'),

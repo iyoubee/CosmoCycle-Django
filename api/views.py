@@ -202,3 +202,30 @@ def get_is_logedin(request):
     elif (has_role(user, superUser)):
         return JsonResponse({ "isUser": "true", "role": "admin" }, status=200)
     return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_get_redeemed_prize(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        prize = RedeemedPrize.objects.filter(user=user).order_by('-pk')
+        return JsonResponse(serializers.serialize("json", prize), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_use_prize(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        if request.method == 'POST':
+            try:
+                itemId = int(request.POST.get('id'))
+                redeemedprize = RedeemedPrize.objects.get(user=user, pk=itemId)
+                if redeemedprize.stok == 1:
+                    redeemedprize.delete()
+                else:
+                    redeemedprize.stok -= 1
+                    redeemedprize.save()
+                return JsonResponse({"message": "Prize berhasil digunakan"}, status=200) 
+            except:
+                return JsonResponse({"message": "Something went wrong"}, status=500)
+        return JsonResponse({"message": "Method not allowed"}, status=502)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)

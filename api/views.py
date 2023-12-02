@@ -16,6 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout
 
 import json
+import string
+import random
 
 def index(request):
     return JsonResponse({ "status": 200, "message": "Halo..." }, status=200)
@@ -31,7 +33,8 @@ def register(request):
                 if acc:
                     acc.set_password(password)
                     acc.save()
-                    UserData.objects.create(user=acc, username=username, poin=0, balance=0)
+                    random_token = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
+                    UserData.objects.create(user=acc, username=username, poin=0, balance=0, token=random_token)
                     assign_role(acc, commonUser)
                     return JsonResponse({ "status": 200, "message": "Successfully Register!" }, status=200)
                 else:
@@ -53,7 +56,8 @@ def register_admin(request):
                 if acc:
                     acc.set_password(password)
                     acc.save()
-                    UserData.objects.create(user=acc, username=username, poin=0, balance=0)
+                    random_token = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
+                    UserData.objects.create(user=acc, username=username, poin=0, balance=0, token=random_token)
                     assign_role(acc, superUser)
                     return JsonResponse({ "status": 200, "message": "Successfully Register!" }, status=200)
                 else:

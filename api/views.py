@@ -132,9 +132,10 @@ def admin_add_deposit(request):
             PLASTIC_PRICE = 5000
             GLASS_PRICE = 7000
             METAL_PRICE = 10000
-            user = UserData.objects.get(pk=request.id)
+            username = request.POST.get('username')
             waste_type = request.POST.get('waste_type')
             weight = int(request.POST.get('weight'))
+            userData = UserData.objects.get(username=username)
             if (weight > 0):
                 total_price = 0
                 if waste_type == "paper":
@@ -146,11 +147,11 @@ def admin_add_deposit(request):
                 elif waste_type == "metal":
                     total_price = weight * METAL_PRICE
                 poin = total_price // 1000
-                deposit = Deposit(weight=weight, waste_type=waste_type, total_price=total_price, poin=poin, user=user, username=user.username)
+                deposit = Deposit(weight=weight, waste_type=waste_type, total_price=total_price, poin=poin, user=userData.user, username=username)
                 deposit.save()
-                user.poin += poin
-                user.balance += total_price
-                user.save()
+                userData.poin += poin
+                userData.balance += total_price
+                userData.save()
                 return JsonResponse({"message": "Deposit diajukan" ,"status":200}, status=200) 
             return JsonResponse({ "message": "Input tidak valid", "status":400}, status=400)
         return JsonResponse({"message": "Method not allowed", "status":502}, status=502)

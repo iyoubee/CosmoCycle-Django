@@ -20,6 +20,7 @@ urlpatterns = [
     path('admin/prize/get', admin_get_prize, name='admin_get_prize'),
     path('admin/prize/add', admin_add_prize, name='admin_add_prize'),
     path('admin/prize/del', admin_del_prize, name='admin_del_prize'),
+    path('admin/withdraw/approve', admin_approve_withdraw, name='admin_approve_withdraw'),
     
     # user
     path('user/token', user_get_token, name='user_get_token'),

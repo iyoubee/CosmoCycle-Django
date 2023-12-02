@@ -15,6 +15,8 @@ from .models import UserData, Prize, RedeemedPrize, Deposit, Withdraw
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout
 
+from django.forms.models import model_to_dict
+
 def index(request):
     return JsonResponse({ "status": 200, "message": "Halo..." }, status=200)
 
@@ -318,10 +320,14 @@ def user_get_withdraw(request):
 @csrf_exempt
 def user_get_deposit(request):
     user = request.user
-    if (has_role(user, commonUser)):
+    if has_role(user, commonUser):
         deposit = Deposit.objects.filter(user=user).order_by('-pk')
-        return JsonResponse(serializers.serialize("json", deposit), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+        # Convert QuerySet to list of dictionaries
+        deposit_list = [model_to_dict(entry) for entry in deposit]
+
+        return JsonResponse(deposit_list, safe=False, status=200)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def user_get_data(request):

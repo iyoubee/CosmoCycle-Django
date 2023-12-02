@@ -198,24 +198,6 @@ def admin_del_prize(request):
     return JsonResponse({ "message": "Unauthorized", 'status':403}, status=403)
 
 @csrf_exempt
-def admin_approve_withdraw(request):
-    user = request.user
-    if has_role(user, superUser):
-        if request.method == 'POST':
-            id = int(request.POST.get('id'))
-            user_data = UserData.objects.get(user=user)
-            withdraw = Withdraw.objects.get(pk=id)
-            if (withdraw is not None and withdraw.isApprove == "PENDING"):
-                withdraw.isApprove = "APPROVED"
-                withdraw.save()
-                user_data.balance -= withdraw.amount
-                user.save()
-                return JsonResponse({"message": "Penarikan Berhasil", 'status':200}, status=200) 
-            return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
-        return JsonResponse({"message": "Method not allowed", 'status':502}, status=502)
-    return JsonResponse({ "message": "Unauthorized" , 'status':403}, status=403)
-
-@csrf_exempt
 def user_get_token(request):
     user = request.user
     if (has_role(user, commonUser)):
@@ -258,7 +240,8 @@ def user_redeem_prize(request):
                         redeemedprize = RedeemedPrize(
                             title=prize.title,
                             user=user,
-                            desc=prize.desc
+                            desc=prize.desc,
+                            picture=prize.picture
                         )
                         redeemedprize.save()
                     else: # Berarti jenis prize ini udah pernah di-redeem sama user, kita cuma perlu update stok-nya aja
@@ -303,20 +286,21 @@ def user_add_withdraw(request):
     user = request.user
     if has_role(user, commonUser):
         if request.method == 'POST':
-            method = int(request.POST.get('method'))
-            provider = int(request.POST.get('provider'))
-            account_no = int(request.POST.get('account_no'))
+            method = request.POST.get('method')
+            provider = request.POST.get('provider')
+            account_no = request.POST.get('account_no')
             amount = int(request.POST.get('amount'))
-            user = UserData.objects.get(user=user)
-            str_account_no = str(account_no)
+            userData = UserData.objects.get(user=user)
             if amount < 25000:
                 return JsonResponse({"message": "Minimum 25.000", 'status':300}, status=200) 
-            if method == "bank transfer" and not len(str_account_no) == 9:
+            if method == "bank transfer" and not len(account_no) == 9:
                 return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
-            if method == "e-wallet" and (len(str_account_no) < 9 or not str_account_no.startswith("08")):
+            if method == "e-wallet" and (len(account_no) < 9 or not account_no.startswith("08")):
                 return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
             if (amount > 0):
-                if (user.balance >= amount):
+                if (userData.balance >= amount):
+                    userData.balance -= amount
+                    userData.save()
                     withdraw = Withdraw(user=user, method=method, provider=provider, account_no=account_no, amount=amount)
                     withdraw.save()
                     return JsonResponse({"message": "Penarikan Berhasil", 'status':200}, status=200) 

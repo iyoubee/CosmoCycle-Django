@@ -338,11 +338,9 @@ def user_get_deposit(request):
     user = request.user
     if has_role(user, commonUser):
         deposit = Deposit.objects.filter(user=user).order_by('-pk')
-
-        # Convert QuerySet to list of dictionaries
-        deposit_list = [model_to_dict(entry) for entry in deposit]
-
-        return JsonResponse(deposit_list, safe=False, status=200)
+        serialized_deposit = serialize("json", deposit)
+        deposit_data = json.loads(serialized_deposit)  # Convert to Python object
+        return JsonResponse(deposit_data, safe=False, status=200)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt

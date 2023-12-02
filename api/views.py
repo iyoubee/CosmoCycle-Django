@@ -16,6 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout
 
 from django.forms.models import model_to_dict
+from django.core.serializers import serialize
+import json
 
 def index(request):
     return JsonResponse({ "status": 200, "message": "Halo..." }, status=200)
@@ -216,18 +218,22 @@ def user_get_token(request):
 @csrf_exempt
 def user_get_prize(request):
     user = request.user
-    if (has_role(user, commonUser)):
+    if has_role(user, commonUser):
         prize = Prize.objects.all().order_by('-pk')
-        return JsonResponse(serializers.serialize("json", prize), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+        serialized_prize = serialize("json", prize)
+        prize_data = json.loads(serialized_prize)  # Convert to Python object
+        return JsonResponse(prize_data, status=200, safe=False)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def user_get_redeemed_prize(request):
     user = request.user
-    if (has_role(user, commonUser)):
-        prize = RedeemedPrize.objects.filter(user=user).order_by('-pk')
-        return JsonResponse(serializers.serialize("json", prize), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+    if has_role(user, commonUser):
+        redeemed_prizes = RedeemedPrize.objects.filter(user=user).order_by('-pk')
+        serialized_redeemed_prizes = serialize("json", redeemed_prizes)
+        redeemed_prizes_data = json.loads(serialized_redeemed_prizes)  # Convert to Python object
+        return JsonResponse(redeemed_prizes_data, status=200, safe=False)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def user_redeem_prize(request):
@@ -312,10 +318,12 @@ def user_add_withdraw(request):
 @csrf_exempt
 def user_get_withdraw(request):
     user = request.user
-    if (has_role(user, commonUser)):
-        withdraw = Withdraw.objects.filter(user=user).order_by('-pk')
-        return JsonResponse(serializers.serialize("json", withdraw), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+    if has_role(user, commonUser):
+        withdraws = Withdraw.objects.filter(user=user).order_by('-pk')
+        serialized_withdraws = serialize("json", withdraws)
+        withdraws_data = json.loads(serialized_withdraws)  # Convert to Python object
+        return JsonResponse(withdraws_data, status=200, safe=False)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def user_get_deposit(request):
@@ -332,10 +340,12 @@ def user_get_deposit(request):
 @csrf_exempt
 def user_get_data(request):
     user = request.user
-    if (has_role(user, commonUser)):
+    if has_role(user, commonUser):
         userdata = UserData.objects.filter(user=user)
-        return JsonResponse(serializers.serialize("json", userdata), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+        serialized_userdata = serialize("json", userdata)
+        userdata_data = json.loads(serialized_userdata)  # Convert to Python object
+        return JsonResponse(userdata_data, status=200, safe=False)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def get_is_logedin(request):

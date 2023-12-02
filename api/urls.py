@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/prize/del', admin_del_prize, name='admin_del_prize'),
     
     # user
-    path('user/token', user_get_token_by_id, name='user_get_token_by_id'),
+    path('user/token', user_get_token, name='user_get_token'),
     path('user/data/get', user_get_data, name='user_get_data'),
     path('user/prize/get', user_get_prize, name='user_get_prize'),
     path('user/prize/redeem/get', user_get_redeemed_prize, name='user_get_redeemed_prize'),

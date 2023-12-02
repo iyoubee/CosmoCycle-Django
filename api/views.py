@@ -129,22 +129,28 @@ def admin_add_deposit(request):
     user = request.user
     if (has_role(user, superUser)):
         if request.method == 'POST':
-            HARGA_PLASTIK = 10000
-            HARGA_ELEKTRONIK = 12000
+            PAPER_PRICE = 4000
+            PLASTIC_PRICE = 5000
+            GLASS_PRICE = 7000
+            METAL_PRICE = 10000
             user = UserData.objects.get(pk=request.id)
-            jenis = request.POST.get('jenis')
-            berat = int(request.POST.get('berat'))
-            if (berat > 0):
-                totalHarga = 0
-                if jenis == "plastik":
-                    totalHarga = berat * HARGA_PLASTIK
-                elif jenis == "elektronik":
-                    totalHarga = berat * HARGA_ELEKTRONIK
-                poin = totalHarga // 1000
-                deposit = Deposit(berat=berat, jenis=jenis, totalHarga=totalHarga, poin=poin, user=user, username=user.username)
+            waste_type = request.POST.get('waste_type')
+            weight = int(request.POST.get('weight'))
+            if (weight > 0):
+                total_price = 0
+                if waste_type == "paper":
+                    total_price = weight * PAPER_PRICE
+                elif waste_type == "plastic":
+                    total_price = weight * PLASTIC_PRICE
+                elif waste_type == "glass":
+                    total_price = weight * GLASS_PRICE
+                elif waste_type == "metal":
+                    total_price = weight * METAL_PRICE
+                poin = total_price // 1000
+                deposit = Deposit(weight=weight, waste_type=waste_type, total_price=total_price, poin=poin, user=user, username=user.username)
                 deposit.save()
                 user.poin += poin
-                user.balance += totalHarga
+                user.balance += total_price
                 user.save()
                 return JsonResponse({"message": "Deposit diajukan" ,"status":200}, status=200) 
             return JsonResponse({ "message": "Input tidak valid", "status":400}, status=400)
@@ -156,12 +162,13 @@ def admin_add_prize(request):
     user = request.user
     if (has_role(user, superUser)):
         if request.method == 'POST':
-            nama = request.POST.get('nama')
+            title = request.POST.get('title')
+            picture = request.POST.get('picture')
             poin = int(request.POST.get('poin'))
             stok = int(request.POST.get('stok'))
             desc = request.POST.get('desc')
             if (poin > 0 and stok > 0):
-                prize = Prize(nama=nama, poin=poin, stok=stok, desc=desc)
+                prize = Prize(title=title, poin=poin, stok=stok, desc=desc, picture=picture)
                 prize.save()
                 return JsonResponse({"message": "Prize Dibuat", 'status':200}, status=200) 
             return JsonResponse({"message": "Poin dan Stok tidak boleh 0", 'status':200}, status=200) 
@@ -189,11 +196,28 @@ def admin_del_prize(request):
     return JsonResponse({ "message": "Unauthorized", 'status':403}, status=403)
 
 @csrf_exempt
-def user_get_token_by_id(request):
+def admin_approve_withdraw(request):
+    user = request.user
+    if has_role(user, superUser):
+        if request.method == 'POST':
+            id = int(request.POST.get('id'))
+            user_data = UserData.objects.get(user=user)
+            withdraw = Withdraw.objects.get(pk=id)
+            if (withdraw is not None and withdraw.isApprove is "PENDING"):
+                withdraw.isApprove = "APPROVED"
+                withdraw.save()
+                user_data.balance -= withdraw.amount
+                user.save()
+                return JsonResponse({"message": "Penarikan Berhasil", 'status':200}, status=200) 
+            return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
+        return JsonResponse({"message": "Method not allowed", 'status':502}, status=502)
+    return JsonResponse({ "message": "Unauthorized" , 'status':403}, status=403)
+
+@csrf_exempt
+def user_get_token(request):
     user = request.user
     if (has_role(user, commonUser)):
-        idx = int(request.POST.get('id'))
-        userData = UserData.objects.get(pk=idx)
+        userData = UserData.objects.get(user=user)
         return JsonResponse({"id": userData.pk, "token": userData.token}, status=200)
     return JsonResponse({ "message": "Unauthorized" }, status=403)
 
@@ -273,14 +297,16 @@ def user_add_withdraw(request):
     user = request.user
     if has_role(user, commonUser):
         if request.method == 'POST':
-            jumlah = int(request.POST.get('jumlah'))
+            method = int(request.POST.get('method'))
+            provider = int(request.POST.get('provider'))
+            account_no = int(request.POST.get('account_no'))
+            amount = int(request.POST.get('amount'))
+
             user = UserData.objects.get(user=user)
-            if (jumlah > 0):
-                if (user.balance >= jumlah):
-                    withdraw = Withdraw(jumlah=jumlah, user=user)
+            if (amount > 0):
+                if (user.balance >= amount):
+                    withdraw = Withdraw(user=user, method=method, provider=provider, account_no=account_no, amount=amount)
                     withdraw.save()
-                    user.balance -= jumlah
-                    user.save()
                     return JsonResponse({"message": "Penarikan Berhasil", 'status':200}, status=200) 
                 return JsonResponse({"message": "Saldo Kurang", 'status':300}, status=200) 
             return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
@@ -318,47 +344,4 @@ def get_is_logedin(request):
         return JsonResponse({ "isUser": "true", "role": "user"  }, status=200)
     elif (has_role(user, superUser)):
         return JsonResponse({ "isUser": "true", "role": "admin" }, status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
-
-@csrf_exempt
-def user_get_prize(request):
-    user = request.user
-    if (has_role(user, commonUser)):
-        prize = Prize.objects.all().order_by('-pk')
-        return JsonResponse(serializers.serialize("json", prize), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
-
-@csrf_exempt
-def user_redeem_prize(request):
-    user = request.user
-    if (has_role(user, commonUser)):
-        if request.method == 'POST':
-            itemId = int(request.POST.get('id'))
-            prize = Prize.objects.get(pk=itemId)
-            check_prize = RedeemedPrize.objects.filter(user=user, title=prize.title).first()
-            if prize.stok > 0: 
-                userdata = UserData.objects.get(user=user)
-                if (userdata.poin >= prize.poin): 
-                    if(check_prize == None): 
-                        redeemedprize = RedeemedPrize(
-                            title=prize.title,
-                            user=user,
-                            desc=prize.desc
-                        )
-                        redeemedprize.save()
-                    else: 
-                        redeemedprize = RedeemedPrize.objects.get(user=user, title=prize.title)
-                        redeemedprize.stok += 1
-                        redeemedprize.save()
-
-                    prize.stok -= 1 
-                    prize.save()
-
-                    userdata.poin -= prize.poin 
-                    userdata.save()
-
-                    return JsonResponse({"message": "Berhasil Redeem"}, status=200) 
-                return JsonResponse({"message": "Poin Kurang"}, status=200) 
-            return JsonResponse({"message": "Stok Habis"}, status=200) 
-        return JsonResponse({"message": "Method not allowed"}, status=502)
     return JsonResponse({ "message": "Unauthorized" }, status=403)

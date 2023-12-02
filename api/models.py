@@ -11,6 +11,7 @@ class UserData(models.Model):
 
 class Prize(models.Model):
     title = models.TextField()
+    picture = models.TextField()
     poin = models.BigIntegerField()
     stok = models.BigIntegerField()
     desc = models.TextField()
@@ -25,13 +26,16 @@ class Deposit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.now)
     username = models.TextField()
-    jenis = models.TextField()
-    berat = models.BigIntegerField()
+    waste_type = models.TextField()
+    weight = models.BigIntegerField()
     poin = models.BigIntegerField()
-    totalHarga = models.BigIntegerField()
+    total_price = models.BigIntegerField()
 
 class Withdraw(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.now())
-    jumlah = models.TextField()
+    method = models.TextField()
+    provider = models.TextField()
+    account_no = models.TextField()
+    amount = models.BigIntegerField(default=0)
     isApprove = models.TextField(default="PENDING")

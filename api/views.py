@@ -96,19 +96,24 @@ def logout_user(request):
 @csrf_exempt
 def admin_get_user_by_token(request):
     user = request.user
-    if (has_role(user, superUser)):
+    if has_role(user, superUser):
         token = request.POST.get('token')
-        userData = UserData.objects.get(token=token)
-        return JsonResponse({"id": userData.pk, "id": userData.pk, "username": userData.username}, status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+        try:
+            userData = UserData.objects.get(token=token)
+            return JsonResponse({"id": userData.pk, "username": userData.username}, status=200)
+        except UserData.DoesNotExist:
+            return JsonResponse({"message": "User not found"}, status=404)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def admin_get_deposit(request):
     user = request.user
-    if (has_role(user, superUser)):
-        deposit = Deposit.objects.all().order_by('-pk')
-        return JsonResponse(serializers.serialize("json", deposit), status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
+    if has_role(user, superUser):
+        deposits = Deposit.objects.all().order_by('-pk')
+        serialized_deposits = serialize("json", deposits)
+        deposits_data = json.loads(serialized_deposits)  # Convert to Python object
+        return JsonResponse(deposits_data, status=200, safe=False)
+    return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
 def admin_get_deposit_count(request):

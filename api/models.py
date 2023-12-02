@@ -4,7 +4,7 @@ from django.utils import timezone
 import string
 import random
 
-random_token = ''.join(random.choice(string.ascii_uppercase) for _ in range(7))
+random_token = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
 
 class UserData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

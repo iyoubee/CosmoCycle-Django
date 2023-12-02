@@ -180,7 +180,9 @@ def admin_get_prize(request):
     user = request.user
     if (has_role(user, superUser)):
         prize = Prize.objects.all().order_by('-pk')
-        return JsonResponse(serializers.serialize("json", prize), status=200)
+        serialized_prize = serialize("json", prize)
+        prize_data = json.loads(serialized_prize)  # Convert to Python object
+        return JsonResponse(prize_data, status=200, safe=False)
     return JsonResponse({ "message": "Unauthorized" }, status=403)
 
 @csrf_exempt

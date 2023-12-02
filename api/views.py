@@ -1,5 +1,5 @@
 # import respons util
-from django.core import serializers
+from django.core.serializers import serialize
 from django.http.response import JsonResponse
 
 # import role util
@@ -15,8 +15,6 @@ from .models import UserData, Prize, RedeemedPrize, Deposit, Withdraw
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout
 
-from django.forms.models import model_to_dict
-from django.core.serializers import serialize
 import json
 
 def index(request):
@@ -111,7 +109,7 @@ def admin_get_deposit(request):
     if has_role(user, superUser):
         deposits = Deposit.objects.all().order_by('-pk')
         serialized_deposits = serialize("json", deposits)
-        deposits_data = json.loads(serialized_deposits)  # Convert to Python object
+        deposits_data = json.loads(serialized_deposits)
         return JsonResponse(deposits_data, status=200, safe=False)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
@@ -173,7 +171,7 @@ def admin_get_prize(request):
     if (has_role(user, superUser)):
         prize = Prize.objects.all().order_by('-pk')
         serialized_prize = serialize("json", prize)
-        prize_data = json.loads(serialized_prize)  # Convert to Python object
+        prize_data = json.loads(serialized_prize)
         return JsonResponse(prize_data, status=200, safe=False)
     return JsonResponse({ "message": "Unauthorized" }, status=403)
 
@@ -203,7 +201,7 @@ def user_get_prize(request):
     if has_role(user, commonUser):
         prize = Prize.objects.all().order_by('-pk')
         serialized_prize = serialize("json", prize)
-        prize_data = json.loads(serialized_prize)  # Convert to Python object
+        prize_data = json.loads(serialized_prize)
         return JsonResponse(prize_data, status=200, safe=False)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
@@ -213,7 +211,7 @@ def user_get_redeemed_prize(request):
     if has_role(user, commonUser):
         redeemed_prizes = RedeemedPrize.objects.filter(user=user).order_by('-pk')
         serialized_redeemed_prizes = serialize("json", redeemed_prizes)
-        redeemed_prizes_data = json.loads(serialized_redeemed_prizes)  # Convert to Python object
+        redeemed_prizes_data = json.loads(serialized_redeemed_prizes)
         return JsonResponse(redeemed_prizes_data, status=200, safe=False)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
@@ -225,10 +223,10 @@ def user_redeem_prize(request):
             itemId = int(request.POST.get('id'))
             prize = Prize.objects.get(pk=itemId)
             check_prize = RedeemedPrize.objects.filter(user=user, title=prize.title).first()
-            if prize.stok > 0: # Stok harus ada
+            if prize.stok > 0:
                 userdata = UserData.objects.get(user=user)
-                if (userdata.poin >= prize.poin): # Poin harus cukup
-                    if(check_prize == None): # Berarti ini prize baru yang di-redeem sama user
+                if (userdata.poin >= prize.poin): 
+                    if(check_prize == None): 
                         redeemedprize = RedeemedPrize(
                             title=prize.title,
                             user=user,
@@ -236,15 +234,15 @@ def user_redeem_prize(request):
                             picture=prize.picture
                         )
                         redeemedprize.save()
-                    else: # Berarti jenis prize ini udah pernah di-redeem sama user, kita cuma perlu update stok-nya aja
+                    else:
                         redeemedprize = RedeemedPrize.objects.get(user=user, title=prize.title)
                         redeemedprize.stok += 1
                         redeemedprize.save()
 
-                    prize.stok -= 1 # Set stok prize setelah redeem
+                    prize.stok -= 1 
                     prize.save()
 
-                    userdata.poin -= prize.poin # Kurangi poin user setelah redeem
+                    userdata.poin -= prize.poin 
                     userdata.save()
 
                     return JsonResponse({"message": "Berhasil Redeem"}, status=200) 
@@ -261,10 +259,10 @@ def user_use_prize(request):
         if request.method == 'POST':
             try:
                 itemId = int(request.POST.get('id'))
-                redeemedprize = RedeemedPrize.objects.get(user=user, pk=itemId) # Search redeemed prize
-                if redeemedprize.stok == 1: # If there's only 1 prize, it will be deleted from database
+                redeemedprize = RedeemedPrize.objects.get(user=user, pk=itemId)
+                if redeemedprize.stok == 1:
                     redeemedprize.delete()
-                else: # Stok redeemed prize lebih dari 1, berarti saat digunakan stok-nya akan berkurang
+                else: 
                     redeemedprize.stok -= 1
                     redeemedprize.save()
                 return JsonResponse({"message": "Prize berhasil digunakan"}, status=200) 
@@ -307,7 +305,7 @@ def user_get_withdraw(request):
     if has_role(user, commonUser):
         withdraws = Withdraw.objects.filter(user=user).order_by('-pk')
         serialized_withdraws = serialize("json", withdraws)
-        withdraws_data = json.loads(serialized_withdraws)  # Convert to Python object
+        withdraws_data = json.loads(serialized_withdraws)
         return JsonResponse(withdraws_data, status=200, safe=False)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
@@ -317,7 +315,7 @@ def user_get_deposit(request):
     if has_role(user, commonUser):
         deposit = Deposit.objects.filter(user=user).order_by('-pk')
         serialized_deposit = serialize("json", deposit)
-        deposit_data = json.loads(serialized_deposit)  # Convert to Python object
+        deposit_data = json.loads(serialized_deposit)
         return JsonResponse(deposit_data, safe=False, status=200)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
@@ -327,7 +325,7 @@ def user_get_data(request):
     if has_role(user, commonUser):
         userdata = UserData.objects.filter(user=user)
         serialized_userdata = serialize("json", userdata)
-        userdata_data = json.loads(serialized_userdata)  # Convert to Python object
+        userdata_data = json.loads(serialized_userdata)
         return JsonResponse(userdata_data, status=200, safe=False)
     return JsonResponse({"message": "Unauthorized"}, status=403)
 

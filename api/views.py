@@ -15,9 +15,6 @@ from .models import UserData, Prize, RedeemedPrize, Deposit, Withdraw
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login, logout
 
-import random
-import string
-
 def index(request):
     return JsonResponse({ "status": 200, "message": "Halo..." }, status=200)
 
@@ -32,12 +29,7 @@ def register(request):
                 if acc:
                     acc.set_password(password)
                     acc.save()
-                    userdata = UserData.objects.create(user=acc)
-                    userdata.username = username
-                    uppercase_chars = string.ascii_uppercase
-                    random_token = ''.join(random.choice(uppercase_chars) for _ in range(6))
-                    userdata.token = random_token
-                    userdata.save()
+                    UserData.objects.create(user=acc, username=username)
                     assign_role(acc, commonUser)
                     return JsonResponse({ "status": 200, "message": "Successfully Register!" }, status=200)
                 else:
@@ -59,9 +51,7 @@ def register_admin(request):
                 if acc:
                     acc.set_password(password)
                     acc.save()
-                    userdata = UserData.objects.create(user=acc)
-                    userdata.username = username
-                    userdata.save()
+                    UserData.objects.create(user=acc, username=username)
                     assign_role(acc, superUser)
                     return JsonResponse({ "status": 200, "message": "Successfully Register!" }, status=200)
                 else:
@@ -203,7 +193,7 @@ def admin_approve_withdraw(request):
             id = int(request.POST.get('id'))
             user_data = UserData.objects.get(user=user)
             withdraw = Withdraw.objects.get(pk=id)
-            if (withdraw is not None and withdraw.isApprove is "PENDING"):
+            if (withdraw is not None and withdraw.isApprove == "PENDING"):
                 withdraw.isApprove = "APPROVED"
                 withdraw.save()
                 user_data.balance -= withdraw.amount
@@ -302,11 +292,10 @@ def user_add_withdraw(request):
             account_no = int(request.POST.get('account_no'))
             amount = int(request.POST.get('amount'))
             user = UserData.objects.get(user=user)
-
             str_account_no = str(account_no)
-            if method is "bank transfer" and len(str_account_no) != 9:
+            if method == "bank transfer" and not len(str_account_no) == 9:
                 return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
-            if method is "e-wallet" and (len(str_account_no) < 9 or not str_account_no.startswith("08")):
+            if method == "e-wallet" and (len(str_account_no) < 9 or not str_account_no.startswith("08")):
                 return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
             if (amount > 0):
                 if (user.balance >= amount):

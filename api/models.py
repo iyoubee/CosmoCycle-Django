@@ -9,7 +9,7 @@ random_token = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
 class UserData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     username = models.CharField(max_length=150, unique=True)  # Adjust max_length as needed
-    token = models.CharField(max_length=6, unique=True, default=random_token)
+    token = models.CharField(max_length=10, unique=True, default=random_token)
     poin = models.BigIntegerField()
     balance = models.BigIntegerField()
 

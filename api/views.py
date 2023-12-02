@@ -33,7 +33,7 @@ def register(request):
                 if acc:
                     acc.set_password(password)
                     acc.save()
-                    UserData.objects.create(user=acc, username=username)
+                    UserData.objects.create(user=acc, username=username, poin=0, balance=0)
                     assign_role(acc, commonUser)
                     return JsonResponse({ "status": 200, "message": "Successfully Register!" }, status=200)
                 else:

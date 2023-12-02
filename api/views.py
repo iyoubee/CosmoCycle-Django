@@ -301,6 +301,8 @@ def user_add_withdraw(request):
             amount = int(request.POST.get('amount'))
             user = UserData.objects.get(user=user)
             str_account_no = str(account_no)
+            if amount < 25000:
+                return JsonResponse({"message": "Minimum 25.000", 'status':300}, status=200) 
             if method == "bank transfer" and not len(str_account_no) == 9:
                 return JsonResponse({"message": "Input tidak valid", 'status':300}, status=200) 
             if method == "e-wallet" and (len(str_account_no) < 9 or not str_account_no.startswith("08")):

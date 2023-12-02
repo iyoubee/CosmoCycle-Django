@@ -107,3 +107,46 @@ def get_is_logedin(request):
     elif (has_role(user, superUser)):
         return JsonResponse({ "isUser": "true", "role": "admin" }, status=200)
     return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_get_prize(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        prize = Prize.objects.all().order_by('-pk')
+        return JsonResponse(serializers.serialize("json", prize), status=200)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)
+
+@csrf_exempt
+def user_redeem_prize(request):
+    user = request.user
+    if (has_role(user, commonUser)):
+        if request.method == 'POST':
+            itemId = int(request.POST.get('id'))
+            prize = Prize.objects.get(pk=itemId)
+            check_prize = RedeemedPrize.objects.filter(user=user, title=prize.title).first()
+            if prize.stok > 0: 
+                userdata = UserData.objects.get(user=user)
+                if (userdata.poin >= prize.poin): 
+                    if(check_prize == None): 
+                        redeemedprize = RedeemedPrize(
+                            title=prize.title,
+                            user=user,
+                            desc=prize.desc
+                        )
+                        redeemedprize.save()
+                    else: 
+                        redeemedprize = RedeemedPrize.objects.get(user=user, title=prize.title)
+                        redeemedprize.stok += 1
+                        redeemedprize.save()
+
+                    prize.stok -= 1 
+                    prize.save()
+
+                    userdata.poin -= prize.poin 
+                    userdata.save()
+
+                    return JsonResponse({"message": "Berhasil Redeem"}, status=200) 
+                return JsonResponse({"message": "Poin Kurang"}, status=200) 
+            return JsonResponse({"message": "Stok Habis"}, status=200) 
+        return JsonResponse({"message": "Method not allowed"}, status=502)
+    return JsonResponse({ "message": "Unauthorized" }, status=403)

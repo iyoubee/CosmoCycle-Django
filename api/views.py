@@ -116,14 +116,6 @@ def admin_get_deposit(request):
     return JsonResponse({"message": "Unauthorized"}, status=403)
 
 @csrf_exempt
-def admin_get_deposit_count(request):
-    user = request.user
-    if (has_role(user, superUser)):
-        count = Deposit.objects.all().count()
-        return JsonResponse({"count": count}, status=200)
-    return JsonResponse({ "message": "Unauthorized" }, status=403)
-
-@csrf_exempt
 def admin_add_deposit(request):
     user = request.user
     if (has_role(user, superUser)):

@@ -15,7 +15,6 @@ urlpatterns = [
     # admin
     path('admin/token', admin_get_user_by_token, name='admin_get_user_by_token'),
     path('admin/deposit/get', admin_get_deposit, name='admin_get_deposit'),
-    path('admin/deposit/count', admin_get_deposit_count, name='admin_get_deposit_count'),
     path('admin/deposit/add', admin_add_deposit, name='admin_add_deposit'),
     path('admin/prize/get', admin_get_prize, name='admin_get_prize'),
     path('admin/prize/add', admin_add_prize, name='admin_add_prize'),
@@ -34,7 +33,4 @@ urlpatterns = [
 
     # all
     path('islogedin', get_is_logedin, name='get_is_logedin'),
-    
-    path('user/prize/get', user_get_prize, name='user_get_prize'),
-    path('user/prize/redeem', user_redeem_prize, name='user_redeem_prize'),
 ]

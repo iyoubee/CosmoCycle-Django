@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
+from django.utils import timezone
 
 class UserData(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -24,7 +24,7 @@ class RedeemedPrize(models.Model):
 
 class Deposit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(default=datetime.now)
+    date = models.DateField(default=timezone.now)
     username = models.TextField()
     waste_type = models.TextField()
     weight = models.BigIntegerField()
@@ -33,7 +33,7 @@ class Deposit(models.Model):
 
 class Withdraw(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(default=datetime.now())
+    date = models.DateField(default=timezone.now)
     method = models.TextField()
     provider = models.TextField()
     account_no = models.TextField()
